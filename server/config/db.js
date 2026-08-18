@@ -1,28 +1,29 @@
 const mongoose = require("mongoose");
-const dns=require('dns');
-let isConnected = false;
+
+let cachedPromise = null;
 
 const connectDB = async () => {
-  if (isConnected || mongoose.connection.readyState === 1) {
-    isConnected = true;
-    return;
+  if (mongoose.connection.readyState === 1) {
+    return mongoose.connection;
+  }
+
+  if (!cachedPromise) {
+    const mongoUri = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/buspass_db";
+    
+    cachedPromise = mongoose.connect(mongoUri, {
+      serverSelectionTimeoutMS: 8000,
+      connectTimeoutMS: 10000
+    });
   }
 
   try {
-    dns.setServers(["8.8.8.8","1.1.1.1"]);
-    const mongoUri = process.env.MONGO_URI;
-    if (!mongoUri) {
-      console.warn("⚠️ MONGO_URI is not defined in environment variables.");
-    }
-
-    const conn = await mongoose.connect(mongoUri || "mongodb://127.0.0.1:27017/buspass_db", {
-      serverSelectionTimeoutMS: 5000
-    });
-    
-    isConnected = true;
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
+    await cachedPromise;
+    console.log(`MongoDB Connected: ${mongoose.connection.host}`);
+    return mongoose.connection;
   } catch (error) {
+    cachedPromise = null;
     console.error(`Database Connection Error: ${error.message}`);
+    throw error;
   }
 };
 

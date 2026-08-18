@@ -2,16 +2,17 @@ const mongoose = require("mongoose");
 const connectDB = require("../config/db");
 
 const checkDbConnection = async (req, res, next) => {
-  if (mongoose.connection.readyState !== 1) {
-    await connectDB();
-  }
-
-  if (mongoose.connection.readyState !== 1) {
+  try {
+    if (mongoose.connection.readyState !== 1) {
+      await connectDB();
+    }
+    next();
+  } catch (error) {
     return res.status(503).json({
-      message: "Database connection unavailable. Please verify MONGO_URI in your Vercel Environment Variables."
+      message: "Database connection failed. Please ensure MONGO_URI is set in Environment Variables and your MongoDB IP Access List allows connections (0.0.0.0/0).",
+      error: error.message
     });
   }
-  next();
 };
 
 module.exports = checkDbConnection;
