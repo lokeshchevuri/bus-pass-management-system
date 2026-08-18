@@ -8,6 +8,8 @@ const userSchema = new mongoose.Schema(
     studentId: { type: String, default: "" },
     department: { type: String, default: "General" },
     phone: { type: String, default: "" },
+    route: { type: String, default: "" },
+    busNo: { type: String, default: "" },
     role: { type: String, enum: ["student", "admin"], default: "student" },
     avatar: { type: String, default: "" }
   },

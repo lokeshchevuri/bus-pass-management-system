@@ -7,6 +7,7 @@ const applicationSchema = new mongoose.Schema(
     studentName: { type: String, required: true },
     studentId: { type: String, required: true },
     route: { type: String, required: true },
+    busNo: { type: String, default: "BUS-101" },
     source: { type: String, required: true },
     destination: { type: String, required: true },
     passType: { type: String, enum: ["Monthly", "Quarterly", "Yearly"], default: "Monthly" },

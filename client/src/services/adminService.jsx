@@ -55,6 +55,24 @@ export const fetchAllUsers = async (token) => {
   return handleResponse(response);
 };
 
+export const createStudentAccount = async (studentData, token) => {
+  const response = await fetch("/api/users", {
+    method: "POST",
+    headers: getHeaders(token),
+    body: JSON.stringify(studentData)
+  });
+  return handleResponse(response);
+};
+
+export const updateStudentRouteBus = async (id, routeBusData, token) => {
+  const response = await fetch(`/api/users/${id}/route-bus`, {
+    method: "PUT",
+    headers: getHeaders(token),
+    body: JSON.stringify(routeBusData)
+  });
+  return handleResponse(response);
+};
+
 export const deleteUserAccount = async (id, token) => {
   const response = await fetch(`/api/users/${id}`, {
     method: "DELETE",

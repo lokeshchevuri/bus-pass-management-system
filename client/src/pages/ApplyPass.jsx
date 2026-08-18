@@ -2,15 +2,16 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { submitPassApplication } from "../services/passService";
-import { MapPin, Navigation, Bus, Send, AlertCircle, CheckCircle } from "lucide-react";
+import { MapPin, Navigation, Bus, Send, AlertCircle, CheckCircle, Hash } from "lucide-react";
 import "../styles/application.css";
 
 const ApplyPass = () => {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    route: "Route 101 - Central Express",
+    route: user?.route || "Route 101 - Central Express",
+    busNo: user?.busNo || "BUS-101",
     source: "",
     destination: "",
     passType: "Monthly"
@@ -41,11 +42,17 @@ const ApplyPass = () => {
     e.preventDefault();
     setError("");
     setSuccess("");
+
+    if (!formData.busNo || !formData.busNo.trim()) {
+      setError("Please specify your Bus Number.");
+      return;
+    }
+
     setLoading(true);
 
     try {
       await submitPassApplication(formData, token);
-      setSuccess("Application submitted successfully! Redirecting to application status...");
+      setSuccess("Application submitted successfully to Admin for approval!");
       setTimeout(() => {
         navigate("/status");
       }, 1800);
@@ -61,7 +68,7 @@ const ApplyPass = () => {
       <div style={{ marginBottom: "2rem" }}>
         <h1>Apply for Bus Pass</h1>
         <p style={{ color: "var(--text-muted)" }}>
-          Fill out the route details and pass duration to request a new digital bus pass.
+          Specify your route details, bus number, and duration to request a digital bus pass.
         </p>
       </div>
 
@@ -81,22 +88,39 @@ const ApplyPass = () => {
 
       <div className="glass-panel application-form-card">
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Select Bus Route</label>
-            <div style={{ position: "relative" }}>
-              <Bus size={18} color="var(--text-muted)" style={{ position: "absolute", left: 14, top: 14 }} />
-              <select
-                name="route"
-                className="form-select"
-                style={{ paddingLeft: 42 }}
-                value={formData.route}
-                onChange={handleChange}
-                required
-              >
-                {routeOptions.map((r, i) => (
-                  <option key={i} value={r}>{r}</option>
-                ))}
-              </select>
+          <div className="form-grid-2">
+            <div className="form-group">
+              <label>Select / Type Bus Route</label>
+              <div style={{ position: "relative" }}>
+                <Bus size={18} color="var(--text-muted)" style={{ position: "absolute", left: 14, top: 14 }} />
+                <input
+                  type="text"
+                  name="route"
+                  className="form-input"
+                  style={{ paddingLeft: 42 }}
+                  placeholder="e.g. Route 101 - Central Express"
+                  value={formData.route}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label>Requested Bus Number (Bus No)</label>
+              <div style={{ position: "relative" }}>
+                <Hash size={18} color="#60a5fa" style={{ position: "absolute", left: 14, top: 14 }} />
+                <input
+                  type="text"
+                  name="busNo"
+                  className="form-input"
+                  style={{ paddingLeft: 42 }}
+                  placeholder="e.g. BUS-42, BUS-101"
+                  value={formData.busNo}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
             </div>
           </div>
 
@@ -158,7 +182,7 @@ const ApplyPass = () => {
             style={{ width: "100%", marginTop: "2rem", padding: "0.9rem" }}
             disabled={loading}
           >
-            {loading ? "Submitting..." : <><Send size={18} /> Submit Application</>}
+            {loading ? "Submitting Application..." : <><Send size={18} /> Submit Application to Admin</>}
           </button>
         </form>
       </div>

@@ -26,6 +26,83 @@ const getUserById = async (req, res, next) => {
   }
 };
 
+// @desc    Admin Create New Student Account
+// @route   POST /api/users
+const createStudentByAdmin = async (req, res, next) => {
+  try {
+    const { name, email, password, studentId, department, phone, route, busNo } = req.body;
+
+    if (!name || !email || !password || !studentId) {
+      return res.status(400).json({ message: "Name, email, password, and Student ID are required." });
+    }
+
+    const existing = await User.findOne({ email: email.toLowerCase() });
+    if (existing) {
+      return res.status(400).json({ message: "User with this email already exists." });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newStudent = await User.create({
+      name,
+      email: email.toLowerCase(),
+      password: hashedPassword,
+      studentId,
+      department: department || "General",
+      phone: phone || "",
+      route: route || "Route 101",
+      busNo: busNo || "BUS-101",
+      role: "student"
+    });
+
+    res.status(201).json({
+      message: "Student account created successfully",
+      user: {
+        _id: newStudent._id,
+        name: newStudent.name,
+        email: newStudent.email,
+        studentId: newStudent.studentId,
+        department: newStudent.department,
+        route: newStudent.route,
+        busNo: newStudent.busNo,
+        role: newStudent.role
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Admin Update Student Route & Bus Number
+// @route   PUT /api/users/:id/route-bus
+const updateStudentRouteBusNo = async (req, res, next) => {
+  try {
+    const { route, busNo } = req.body;
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({ message: "Student account not found." });
+    }
+
+    if (route) user.route = route;
+    if (busNo) user.busNo = busNo;
+
+    await user.save();
+
+    res.json({
+      message: "Student route and bus number updated successfully",
+      user: {
+        _id: user._id,
+        name: user.name,
+        route: user.route,
+        busNo: user.busNo
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Update user profile
 // @route   PUT /api/users/profile
 const updateProfile = async (req, res, next) => {
@@ -51,6 +128,8 @@ const updateProfile = async (req, res, next) => {
       studentId: updatedUser.studentId,
       department: updatedUser.department,
       phone: updatedUser.phone,
+      route: updatedUser.route,
+      busNo: updatedUser.busNo,
       role: updatedUser.role
     });
   } catch (error) {
@@ -78,4 +157,11 @@ const deleteUser = async (req, res, next) => {
   }
 };
 
-module.exports = { getAllUsers, getUserById, updateProfile, deleteUser };
+module.exports = {
+  getAllUsers,
+  getUserById,
+  createStudentByAdmin,
+  updateStudentRouteBusNo,
+  updateProfile,
+  deleteUser
+};

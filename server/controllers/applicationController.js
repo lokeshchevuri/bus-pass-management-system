@@ -6,10 +6,10 @@ const { generateApplicationId } = require("../utils/generatePassId");
 // @route   POST /api/applications/apply
 const applyForPass = async (req, res, next) => {
   try {
-    const { route, source, destination, passType } = req.body;
+    const { route, busNo, source, destination, passType } = req.body;
 
-    if (!route || !source || !destination) {
-      return res.status(400).json({ message: "Route, Source, and Destination are required." });
+    if (!route || !busNo || !source || !destination) {
+      return res.status(400).json({ message: "Route, Bus Number, Source, and Destination are required." });
     }
 
     // Check for existing pending or active pass
@@ -39,6 +39,7 @@ const applyForPass = async (req, res, next) => {
       studentName: req.user.name,
       studentId: req.user.studentId || "STD-DEFAULT",
       route,
+      busNo: busNo.trim().toUpperCase(),
       source,
       destination,
       passType: passType || "Monthly",
@@ -58,7 +59,7 @@ const applyForPass = async (req, res, next) => {
 // @route   POST /api/applications/renew
 const renewPass = async (req, res, next) => {
   try {
-    const { passId, passType } = req.body;
+    const { passId, passType, busNo, route } = req.body;
 
     const existingPass = await BusPass.findOne({ student: req.user._id, status: { $in: ["Active", "Expired"] } });
 
@@ -82,7 +83,8 @@ const renewPass = async (req, res, next) => {
       student: req.user._id,
       studentName: req.user.name,
       studentId: req.user.studentId || "STD-DEFAULT",
-      route: existingPass.route,
+      route: route || existingPass.route,
+      busNo: busNo ? busNo.trim().toUpperCase() : existingPass.busNo || "BUS-101",
       source: existingPass.source,
       destination: existingPass.destination,
       passType: passType || existingPass.passType,
