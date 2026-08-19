@@ -47,8 +47,7 @@ const getAllApplications = async (req, res, next) => {
         { studentName: { $regex: search, $options: "i" } },
         { studentId: { $regex: search, $options: "i" } },
         { applicationId: { $regex: search, $options: "i" } },
-        { route: { $regex: search, $options: "i" } },
-        { busNo: { $regex: search, $options: "i" } }
+        { route: { $regex: search, $options: "i" } }
       ];
     }
 
@@ -63,7 +62,7 @@ const getAllApplications = async (req, res, next) => {
 // @route   PUT /api/admin/applications/:id/status
 const updateApplicationStatus = async (req, res, next) => {
   try {
-    const { status, rejectionReason, remarks, busNo, route } = req.body;
+    const { status, rejectionReason, remarks } = req.body;
 
     if (!["Approved", "Rejected"].includes(status)) {
       return res.status(400).json({ message: "Invalid status. Must be Approved or Rejected." });
@@ -81,10 +80,6 @@ const updateApplicationStatus = async (req, res, next) => {
     if (application.status !== "Pending") {
       return res.status(400).json({ message: `Application is already ${application.status}.` });
     }
-
-    // Allow admin to customize/override route or busNo during approval
-    if (route) application.route = route;
-    if (busNo) application.busNo = busNo.trim().toUpperCase();
 
     application.status = status;
     application.remarks = remarks || "";
@@ -119,7 +114,6 @@ const updateApplicationStatus = async (req, res, next) => {
         studentName: application.studentName,
         studentId: application.studentId,
         route: application.route,
-        busNo: application.busNo || "BUS-101",
         source: application.source,
         destination: application.destination,
         passType: application.passType,
@@ -130,15 +124,8 @@ const updateApplicationStatus = async (req, res, next) => {
           passId,
           studentId: application.studentId,
           route: application.route,
-          busNo: application.busNo,
           expiry: expiry.toISOString()
         })
-      });
-
-      // Update student's user profile with assigned route and busNo
-      await User.findByIdAndUpdate(application.student, {
-        route: application.route,
-        busNo: application.busNo
       });
     }
 

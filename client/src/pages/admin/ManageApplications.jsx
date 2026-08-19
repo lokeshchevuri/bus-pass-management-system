@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { fetchAllApplications, updateApplicationStatus } from "../../services/adminService";
 import SearchBar from "../../components/SearchBar";
-import { CheckCircle, XCircle, AlertCircle, X, Hash } from "lucide-react";
+import { CheckCircle, XCircle, Clock, AlertCircle, X } from "lucide-react";
 import "../../styles/admin.css";
 
 const ManageApplications = () => {
@@ -18,8 +18,6 @@ const ManageApplications = () => {
   const [modalAction, setModalAction] = useState(""); // "Approve" or "Reject"
   const [rejectionReason, setRejectionReason] = useState("");
   const [remarks, setRemarks] = useState("");
-  const [busNo, setBusNo] = useState("");
-  const [route, setRoute] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
 
   const loadData = async () => {
@@ -43,8 +41,6 @@ const ManageApplications = () => {
     setModalAction(action);
     setRejectionReason("");
     setRemarks("");
-    setBusNo(app.busNo || "BUS-101");
-    setRoute(app.route || "");
   };
 
   const closeModal = () => {
@@ -64,11 +60,7 @@ const ManageApplications = () => {
     setActionLoading(true);
     try {
       const status = modalAction === "Approve" ? "Approved" : "Rejected";
-      await updateApplicationStatus(
-        selectedApp._id,
-        { status, rejectionReason, remarks, busNo, route },
-        token
-      );
+      await updateApplicationStatus(selectedApp._id, { status, rejectionReason, remarks }, token);
       closeModal();
       loadData();
     } catch (err) {
@@ -83,7 +75,7 @@ const ManageApplications = () => {
       <div>
         <h1>Manage Bus Pass Applications</h1>
         <p style={{ color: "var(--text-muted)" }}>
-          Review, approve, or reject student pass requests with route & bus number verification.
+          Review, approve, or reject student pass requests with automated digital ticket issuance.
         </p>
       </div>
 
@@ -113,8 +105,7 @@ const ManageApplications = () => {
                 <tr>
                   <th>App ID</th>
                   <th>Student Info</th>
-                  <th>Route & Journey</th>
-                  <th>Bus No</th>
+                  <th>Route Journey</th>
                   <th>Pass Type</th>
                   <th>Status</th>
                   <th>Applied On</th>
@@ -132,12 +123,7 @@ const ManageApplications = () => {
                       </td>
                       <td>
                         <div style={{ fontWeight: 600 }}>{app.source} ➔ {app.destination}</div>
-                        <div style={{ fontSize: "0.8rem", color: "#60a5fa" }}>Route: {app.route}</div>
-                      </td>
-                      <td>
-                        <span className="badge badge-pending">
-                          <Hash size={10} /> {app.busNo || "BUS-101"}
-                        </span>
+                        <div style={{ fontSize: "0.8rem", color: "var(--secondary)" }}>Route: {app.route}</div>
                       </td>
                       <td>{app.applicationType} ({app.passType})</td>
                       <td>
@@ -174,7 +160,7 @@ const ManageApplications = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="8" style={{ textAlign: "center", color: "var(--text-muted)", padding: "2.5rem" }}>
+                    <td colSpan="7" style={{ textAlign: "center", color: "var(--text-muted)", padding: "2.5rem" }}>
                       No application records found matching criteria.
                     </td>
                   </tr>
@@ -199,36 +185,11 @@ const ManageApplications = () => {
             </div>
 
             <form onSubmit={handleStatusUpdate}>
-              <div style={{ background: "#0f172a", padding: "1rem", borderRadius: "var(--radius-sm)", marginBottom: "1.25rem", fontSize: "0.9rem", border: "1px solid var(--card-border)" }}>
+              <div style={{ background: "rgba(255, 255, 255, 0.03)", padding: "1rem", borderRadius: "var(--radius-sm)", marginBottom: "1.25rem", fontSize: "0.9rem" }}>
                 <div><strong>Student:</strong> {selectedApp.studentName} ({selectedApp.studentId})</div>
-                <div><strong>Journey:</strong> {selectedApp.source} ➔ {selectedApp.destination}</div>
+                <div><strong>Route:</strong> {selectedApp.source} ➔ {selectedApp.destination}</div>
                 <div><strong>Pass Duration:</strong> {selectedApp.passType}</div>
               </div>
-
-              {modalAction === "Approve" && (
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                  <div className="form-group">
-                    <label>Confirm Route</label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      value={route}
-                      onChange={(e) => setRoute(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Assigned Bus Number</label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      value={busNo}
-                      onChange={(e) => setBusNo(e.target.value)}
-                      required
-                    />
-                  </div>
-                </div>
-              )}
 
               {modalAction === "Reject" && (
                 <div className="form-group">
@@ -249,7 +210,7 @@ const ManageApplications = () => {
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="e.g. Approved and bus number verified"
+                  placeholder="e.g. Verified ID proof"
                   value={remarks}
                   onChange={(e) => setRemarks(e.target.value)}
                 />
