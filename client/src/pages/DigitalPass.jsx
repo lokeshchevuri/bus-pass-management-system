@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { fetchMyPasses } from "../services/passService";
-import { Bus, Printer, ShieldCheck, AlertCircle, QrCode as QrIcon, Hash } from "lucide-react";
+import { Bus, Calendar, Printer, ShieldCheck, AlertCircle, QrCode as QrIcon } from "lucide-react";
 import "../styles/digitalPass.css";
 
 const DigitalPass = () => {
@@ -54,7 +54,7 @@ const DigitalPass = () => {
           <div className="ticket-pass">
             <div className="ticket-header">
               <div className="ticket-logo">
-                <Bus size={22} color="#3b82f6" />
+                <Bus size={22} color="#06b6d4" />
                 <span>TransitPass</span>
               </div>
               <span className="badge badge-approved">
@@ -70,8 +70,8 @@ const DigitalPass = () => {
                 <div className="student-details">
                   <h3>{user?.name || activePass.studentName}</h3>
                   <p>Student ID: {activePass.studentId}</p>
-                  <p style={{ color: "#60a5fa", fontSize: "0.8rem", fontWeight: 600 }}>
-                    Bus No: {activePass.busNo || "BUS-101"}
+                  <p style={{ color: "var(--secondary)", fontSize: "0.8rem" }}>
+                    Dept: {user?.department || "General Campus"}
                   </p>
                 </div>
               </div>
@@ -81,7 +81,7 @@ const DigitalPass = () => {
                   <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", textTransform: "uppercase" }}>From</div>
                   <div style={{ fontWeight: 700, color: "#fff" }}>{activePass.source}</div>
                 </div>
-                <div style={{ color: "#60a5fa", fontWeight: 800 }}>➔</div>
+                <div style={{ color: "var(--secondary)", fontWeight: 800 }}>➔</div>
                 <div style={{ textAlign: "right" }}>
                   <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", textTransform: "uppercase" }}>To</div>
                   <div style={{ fontWeight: 700, color: "#fff" }}>{activePass.destination}</div>
@@ -94,12 +94,12 @@ const DigitalPass = () => {
                   <span>{activePass.passId}</span>
                 </div>
                 <div className="ticket-info-item">
-                  <label>Bus Number</label>
-                  <span style={{ color: "#60a5fa" }}>{activePass.busNo || "BUS-101"}</span>
+                  <label>Pass Type</label>
+                  <span>{activePass.passType} Pass</span>
                 </div>
                 <div className="ticket-info-item">
-                  <label>Route</label>
-                  <span>{activePass.route}</span>
+                  <label>Issue Date</label>
+                  <span>{new Date(activePass.issueDate || activePass.createdAt).toLocaleDateString()}</span>
                 </div>
                 <div className="ticket-info-item">
                   <label>Expiry Date</label>
