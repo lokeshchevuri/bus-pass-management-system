@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
+const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 require("dotenv").config({ path: path.join(__dirname, "../.env") });
 
@@ -17,8 +18,12 @@ const adminRoutes = require("./routes/adminRoutes");
 
 const app = express();
 
-// Connect Database on startup
-connectDB();
+// Connect Database on startup if running locally
+connectDB().then(() => {
+  seedDefaultAdmin();
+}).catch(() => {
+  // DB connection errors handled gracefully by middleware
+});
 
 // Middlewares
 app.use(cors());
@@ -40,9 +45,10 @@ app.use("/api/passes", passRoutes);
 app.use("/api/applications", applicationRoutes);
 app.use("/api/admin", adminRoutes);
 
-// Default Admin Seeding
+// Default Admin Seeding Helper
 async function seedDefaultAdmin() {
   try {
+    if (mongoose.connection.readyState !== 1) return;
     const adminEmail = "admin@buspass.com";
     const existing = await User.findOne({ email: adminEmail });
     if (!existing) {
@@ -59,10 +65,9 @@ async function seedDefaultAdmin() {
       console.log("Default admin account created: admin@buspass.com / admin123");
     }
   } catch (err) {
-    // Suppress error if DB not ready on cold start
+    // Suppress error if DB is busy or read-only
   }
 }
-seedDefaultAdmin();
 
 // Global Error Handler
 app.use(errorHandler);
